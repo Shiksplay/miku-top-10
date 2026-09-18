@@ -2,6 +2,8 @@
 
 Site vitrine expérimental (fan-made, non officiel) : le **Top 10 des chansons de Hatsune Miku**, du n°10 au n°1. Visuels 100 % génératifs (shaders, particules), verre liquide, typographie cinétique « vibrato ».
 
+**En ligne : https://miku-top-10.vercel.app**. Chaque push sur `main` redéploie automatiquement en production (Vercel, intégration GitHub).
+
 ## Démarrer
 
 ```bash
