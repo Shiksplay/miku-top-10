@@ -56,11 +56,12 @@ export function RankingRow({ song }: { song: Song }) {
             fallback={<SongArtFallback song={song} />}
           />
           <span
-            className="pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-inset ring-paper/10 transition-[box-shadow] duration-500 group-hover:ring-paper/30"
+            className="pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-inset ring-white/10 transition-[box-shadow] duration-500 group-hover:ring-white/30"
             aria-hidden="true"
           />
           <span id={`art-${song.slug}`} className="visually-hidden">
             {song.artAlt}
+            {song.video && ' Au survol, la miniature de la vidéo officielle apparaît.'}
           </span>
         </button>
       </div>
@@ -113,7 +114,7 @@ export function RankingRow({ song }: { song: Song }) {
             <button
               type="button"
               onClick={() => openDetail(song.slug)}
-              className="inline-flex min-h-11 items-center rounded-full bg-paper px-5 text-small font-semibold text-void transition-colors duration-300 hover:bg-pink"
+              className="inline-flex min-h-11 items-center rounded-full bg-paper px-5 text-small font-semibold text-void transition-[background-color,scale] duration-300 hover:bg-pink active:scale-[0.96]"
             >
               Voir le détail<span className="visually-hidden"> de {song.title}</span>
             </button>
@@ -122,11 +123,13 @@ export function RankingRow({ song }: { song: Song }) {
                 href={primary.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center gap-2 rounded-full px-4 text-small text-paper ring-1 ring-inset ring-paper/25 transition-colors duration-300 hover:text-pink hover:ring-pink"
+                className="inline-flex min-h-11 items-center gap-2 rounded-full pl-4 pr-3.5 text-small text-paper ring-1 ring-inset ring-paper/25 transition-[color,box-shadow,scale] duration-300 hover:text-pink hover:ring-pink active:scale-[0.96]"
               >
                 <span>
                   Écouter<span className="visually-hidden"> {song.title}</span> sur {primary.platform}
-                  <span className="visually-hidden"> (recherche, nouvel onglet)</span>
+                  <span className="visually-hidden">
+                    {primary.kind === 'video' ? ' (vidéo officielle, nouvel onglet)' : ' (recherche, nouvel onglet)'}
+                  </span>
                 </span>
                 <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
                   <path d="M2 8 8 2M3 2h5v5" fill="none" stroke="currentColor" strokeWidth="1.4" />

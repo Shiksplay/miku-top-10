@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     template: '%s — Miku, en dix morceaux',
   },
   description:
-    'Le classement des dix chansons qui ont fait d’une voix de synthèse une star mondiale, de Melt à Mesmerizer. Site de fan, visuels 100 % génératifs.',
+    'Le classement des dix chansons qui ont fait d’une voix de synthèse une star mondiale, de Melt à Mesmerizer. Site de fan, visuels génératifs.',
   openGraph: {
     type: 'website',
     locale: 'fr_FR',

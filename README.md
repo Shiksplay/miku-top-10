@@ -1,6 +1,6 @@
 # Miku, en dix morceaux
 
-Site vitrine expérimental (fan-made, non officiel) : le **Top 10 des chansons de Hatsune Miku**, du n°10 au n°1. Visuels 100 % génératifs (shaders, particules), verre liquide, typographie cinétique « vibrato ».
+Site vitrine expérimental (fan-made, non officiel) : le **Top 10 des chansons de Hatsune Miku**, du n°10 au n°1. Visuels génératifs (shaders, particules), verre liquide, typographie cinétique « vibrato ». Au survol, les cartes dévoilent la miniature de la vidéo officielle quand elle a été vérifiée.
 
 **En ligne : https://miku-top-10.vercel.app**. Chaque push sur `main` redéploie automatiquement en production (Vercel, intégration GitHub).
 
@@ -69,7 +69,7 @@ docs/DESIGN-SYSTEM.md   tokens couleur / typo / espacement / mouvement / verre
 | # | Contexte | Contenu |
 |---|---|---|
 | 1 | `Backdrop` | **Un seul** `ShaderGradientCanvas`, fond fixe de toute la page. Ses couleurs sont interpolées vers la signature du morceau actif en écrivant directement dans les uniforms compilés, sans re-render (qui recréerait le matériau). En vue détail : signature complète du morceau (`type`, `cDistance`, `cPolarAngle`…), avec un fondu court. |
-| 2 | `Stage` | **Un seul** `<Canvas>` R3F. Toutes les scènes sont des `View` drei : blob du hero, logo métal liquide, art des 10 cartes, visualiseur, constellation. En vue détail, mode exclusif avec `EffectComposer` (Bloom + ChromaticAberration). |
+| 2 | `Stage` | **Un seul** `<Canvas>` R3F. Toutes les scènes sont des `View` drei : blob du hero, logo métal liquide, art des 10 cartes, visualiseur, constellation. En vue détail, mode exclusif avec `EffectComposer` (Bloom + ChromaticAberration). Le masque du blob est un render target rendu dans la même vue, sans second contexte. |
 | 3 | `GlassEngine` | **Un seul** contexte pour toutes les surfaces de verre. |
 
 Autres garde-fous :
@@ -93,13 +93,19 @@ Le paquet npm `liquid-glass-js` **n'est pas** celui de dashersw (autre auteur). 
 
 `components/webgl/shaders/liquidMetal.ts` porte `fragment-shader.glsl` : détection de contours, champ vectoriel itératif, bruit de Simplex 3D, compression tanh et reflets métalliques. Le résultat est rethématisé dans la palette (void → teal profond → teal → papier, reflet rose). Le même GLSL sert :
 1. au **loader** (WebGL brut) : le « 39 » se remplit de métal liquide au rythme de la progression réelle, puis rejoint le header (FLIP) ;
-2. au **logo du header** (ShaderMaterial R3F dans le canvas mutualisé).
+2. au **logo du header** (ShaderMaterial R3F dans le canvas mutualisé) ;
+3. au **blob du hero** (voir ci-dessous), via deux points d'extension optionnels, sans effet sur les deux premiers usages : `LM_FRAME` (repère local qui suit un objet mobile) et `LM_GRAIN` (grain réduit pour une grande surface).
 
 « 39 » se lit mi-ku, ou san-kyū, « merci » : un clin d'œil des fans. Ce n'est pas un logo officiel.
 
 ### Autres
 
-- **Blob du hero** : metaballs 2D à une tête et deux traînes (Verlet), noyau `(r²/d²)²`, ombrage métal liquide depuis le gradient analytique du champ. Le titre passe en `mix-blend-mode: difference` au-dessus : il s'inverse là où le métal passe.
+- **Blob du hero** : une tête et deux traînes (couettes abstraites) simulées en Verlet, avec raideur en flexion. En deux passes dans la même `View` :
+  1. la silhouette (capsules inégales exactes, union lisse avec la tête) est rendue en **masque doux hors-écran** (render target en demi-résolution, au tiers en mode allégé) ;
+  2. ce masque passe par `liquidMetal()`, **la même fonction que le logo**, plus un liseré et un reflet tirés du gradient du masque. Le bord reste net grâce à un seuil antialiasé, comme un texte SDF.
+
+  Le titre passe en `mix-blend-mode: difference` au-dessus : il s'inverse en cramoisi ou en noir là où le métal passe. L'exploration (metaballs d'origine, silhouette seule, verre réfractif, métal liquide) et le choix final sont documentés en tête de `HeroBlob.tsx`.
+- **Miniatures officielles** : pour les morceaux dont la vidéo YouTube officielle a été vérifiée, `CardArt` charge la miniature publique (`i.ytimg.com`, CORS anonyme) comme texture. Au survol ou au focus de la rangée, elle remplace la scène générative par un fondu « liquide » : un seuil sur le bruit fbm de la scène, avec un liseré à la couleur du morceau. Sur écran tactile, la révélation suit la rangée active. La scène est découpée au rectangle arrondi réel de la tuile, parallax compris.
 - **Titre « vibrato »** : l'axe `wdth` ondule près du curseur. Les lettres ont une largeur fixe en `em` (avances mesurées) et le recentrage se fait en `transform`, donc **aucun layout shift**.
 - **Visualiseur des cartes** : spectre **synthétique** calé sur un tempo artistique. Aucun audio n'est hébergé ni lu.
 - **Vue détail** : URL `/morceau/[slug]` via `history.pushState` (intégré au routeur Next 15), sans navigation. Le canvas n'est pas remonté, et le bouton retour du navigateur ferme le détail.
@@ -131,12 +137,24 @@ Lighthouse 12, build de production (`next start`), Chrome headless local :
 
 \* Le LCP mobile **simulé** (Lantern) compte le téléchargement et l'exécution de tout le JS demandé avant le LCP. Le LCP **observé** sur la même trace est de 0,2 s. Le paragraphe du hero est rendu côté serveur et peint dès le premier rendu. Leviers déjà appliqués : CSS 127 Ko → 32 Ko, JS initial 170 Ko → 125 Ko (framer-motion sorti du rendu initial), polices non préchargées.
 
-Framerate mesuré en headless sur le **GPU intégré** (Intel UHD, cas défavorable) : hero ~65–72 fps, classement au survol ~52–58 fps, vue détail avec bloom ~53–56 fps.
+Contrôle après la refonte du blob et l'ajout des miniatures (2026-09-19) : 3 runs desktop et 3 runs mobiles, en alternant l'état d'avant (commit `b7b60d2`) et l'état d'après, sur la même machine. Ce jour-là, les mesures étaient très bruitées (jusqu'à ±15 points d'un run à l'autre, dans les deux états). Aucun écart systématique : médiane desktop 96 → 94, médiane mobile 79 → 78. Accessibilité, bonnes pratiques et SEO restent à 100. JS initial : 125 → 126 Ko. Le tableau ci-dessus reste la référence ; le remesurer sur une machine au repos.
+
+Framerate mesuré en headless sur le **GPU intégré** (Intel UHD, cas défavorable). Mesures alternées avant/après la refonte du blob et l'ajout des miniatures, même session, même script :
+
+| Zone | Avant | Après |
+|---|---|---|
+| Hero (mode complet, curseur en mouvement) | ~68 fps | **~75–77 fps** |
+| Hero (mode allégé) | ~126 fps | ~126 fps |
+| Classement, survol d'une carte (miniature + visualiseur) | ~50–52 fps | **~51–55 fps** |
+| Vue détail avec bloom | ~53–56 fps | non modifiée |
+
+Le hero gagne en fluidité parce que, hors du blob, un pixel ne lit plus qu'un texel de masque avant `discard`, au lieu d'évaluer tout le champ de metaballs.
 
 ### Points d'attention perf
 
 - Garder `preserveDrawingBuffer` **uniquement** sur le canvas de fond (nécessaire pour que le verre le lise), jamais sur le canvas R3F : les vues transparentes y laisseraient des traînées.
-- Toute nouvelle scène 3D passe par `StageView` + le registre (`lib/stage-registry.ts`). Ne jamais ajouter de `<Canvas>`.
+- Toute nouvelle scène 3D passe par `StageView` + le registre (`lib/stage-registry.ts`). Ne jamais ajouter de `<Canvas>`. Un rendu intermédiaire (comme le masque du blob) passe par un render target dans la même vue, créé une fois et redimensionné seulement si la taille change.
+- Les miniatures officielles ne sont chargées comme textures que lorsque la carte est montée (près du viewport), puis libérées au démontage. Côté CSS, un `<img loading="lazy">` natif.
 - Toute nouvelle surface de verre passe par `GlassSurface`. Au-delà d'une dizaine de surfaces visibles simultanément, préférer la variante CSS.
 - Le texte du hero et le titre cinétique doivent garder des largeurs fixes (`ADVANCE` dans `KineticTitle.tsx`) si l'on change de police ou de libellé : remesurer les avances.
 - En dev, la première compilation des chunks three.js est lente (le loader peut rester longtemps). Le build de production n'a pas ce problème.
@@ -147,21 +165,22 @@ Framerate mesuré en headless sur le **GPU intégré** (Intel UHD, cas défavora
 - Navigation clavier complète, testée : ordre de tabulation, anneau de focus visible partout.
 - Détail en `role="dialog"` + `aria-modal` : focus initial sur le titre, focus piégé, Échap pour fermer, retour du focus au déclencheur, reste de la page en `inert`.
 - Contrastes AA vérifiés sur les pixels réels du verre, pour les 10 morceaux, en verre WebGL comme CSS.
-- Texte alternatif descriptif pour chaque visuel génératif (`artAlt`), `aria-hidden` sur tout le décoratif.
+- Texte alternatif descriptif pour chaque visuel génératif (`artAlt`), complété quand une miniature officielle apparaît au survol, et `aria-hidden` sur tout le décoratif. Les liens d'écoute annoncent « vidéo officielle » ou « recherche » selon leur cible réelle.
 - Constellation : chaque étoile a un vrai bouton étiqueté, avec une liste statique en mode allégé ou réduit.
 
 ## Contraintes légales et éditoriales
 
-- Aucune illustration, aucun logo, aucune pochette officielle. Tous les visuels sont génératifs et abstraits.
-- Aucun fichier audio ni aucune parole hébergés. Les liens « Écouter » ouvrent une **recherche** sur YouTube, Spotify ou niconico.
+- Aucune illustration, aucun logo, aucune pochette officielle **hébergés**. Les visuels du site sont génératifs et abstraits.
+- Seule exception, pour 8 morceaux sur 10 : au survol, la carte affiche la **miniature publique** de la vidéo officielle vérifiée. Elle est chargée directement depuis `i.ytimg.com`, jamais copiée ni proxifiée : `<img>` natif, pas `next/image`.
+- Aucun fichier audio ni aucune parole hébergés. Le lien YouTube ouvre la **vidéo officielle** quand elle est vérifiée, sinon une recherche ; Spotify et niconico ouvrent toujours une **recherche**.
 - Mentions dans le footer, licences dans `THIRD_PARTY_NOTICES.md`.
 
 ## Hypothèses documentées
 
 1. **liquid-glass-js** : porté depuis le dépôt dashersw (MIT), le paquet npm homonyme étant d'un autre auteur.
 2. **html2canvas-pro** au lieu de html2canvas 1.4.1 : Tailwind v4 génère des couleurs `oklab()` / `color-mix()` que html2canvas 1.4.1 ne sait pas analyser. Le fork a une API identique.
-3. **Liens d'écoute** : des recherches plutôt que des ID de vidéos, pour ne jamais publier de lien inventé ou mort. Remplacez `listen[].href` dans `data/songs.ts` par les URL officielles exactes si vous les avez.
-4. **Mesmerizer** : le brief indiquait « Sat/3ano ». Le titre est crédité à **サツキ (Satsuki), 2024**, en duo avec Kasane Teto. À vérifier si vous aviez une autre source.
+3. **Liens d'écoute et miniatures** : un ID YouTube n'est utilisé qu'après vérification via l'oEmbed public de YouTube (titre exact et chaîne éditrice : producteur, ou chaîne officielle Hatsune Miku de Crypton). C'est le cas de 8 morceaux ; voir `videos` dans `data/songs.ts`. **Melt** et **Ievan Polkka** n'ont pas de mise en ligne officielle identifiée : visuel génératif et recherche, en point ouvert. World is Mine renvoie vers une captation live officielle, The Disappearance vers le MV du 10e anniversaire (2018).
+4. **Mesmerizer** : le brief indiquait « Sat/3ano ». Le titre est de **サツキ (Satsuki), 2024**, en duo avec Kasane Teto. C'est confirmé par la mise en ligne officielle sur la chaîne サツキ.
 5. **cosMo@BurstP** : affiché sous sa forme d'origine, **cosMo@暴走P** (Bousou-P).
 6. **Tempo** des animations : valeur artistique, jamais affichée (les BPM exacts ne sont pas publiés ici).
 7. **Titres japonais** : police système, plutôt qu'une webfont CJK (≈ 120 `@font-face` bloquants).

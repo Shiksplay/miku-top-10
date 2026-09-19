@@ -80,7 +80,7 @@ export function MiniPlayer() {
                   href={primary.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label={`Écouter ${song.title} sur ${primary.platform} (recherche, nouvel onglet)`}
+                  aria-label={`Écouter ${song.title} sur ${primary.platform} (${primary.kind === 'video' ? 'vidéo officielle' : 'recherche'}, nouvel onglet)`}
                   className="grid h-14 w-14 place-items-center text-paper transition-colors hover:text-pink"
                 >
                   <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">

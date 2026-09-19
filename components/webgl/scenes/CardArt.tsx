@@ -10,10 +10,13 @@ import {
   MeshBasicMaterial,
   Object3D,
   ShaderMaterial,
+  type Texture,
+  TextureLoader,
   Vector2,
   Vector3,
+  Vector4,
 } from 'three'
-import { songBySlug, type SceneKind } from '@/data/songs'
+import { coverUrl, songBySlug, type SceneKind } from '@/data/songs'
 import { useExperience } from '@/lib/store'
 import { hexToRgb01 } from '@/lib/tokens'
 import { cardArtFragment } from '../shaders/cardArt'
@@ -62,15 +65,41 @@ export default function CardArt({ track, slug, lite = false }: Props) {
       uC1: { value: new Vector3(...hexToRgb01(g?.color1 ?? '#39C5BB')) },
       uC2: { value: new Vector3(...hexToRgb01(g?.color2 ?? '#0E3B38')) },
       uC3: { value: new Vector3(...hexToRgb01(g?.color3 ?? '#0B0F0E')) },
+      uCover: { value: null as Texture | null },
+      uCoverMix: { value: 0 },
+      // Zone utile de la miniature : 16:9, sous les bandes noires d'une miniature 4:3 letterbox.
+      uCoverRect: { value: song?.video?.letterbox ? new Vector4(0, 0.125, 1, 0.875) : new Vector4(0, 0, 1, 1) },
+      uCoverAspect: { value: 16 / 9 },
+      uClip: { value: new Vector4(0, 0, 1, 1) },
+      uRadius: { value: 20 },
     }
     const art = new ShaderMaterial({
       vertexShader: vertex,
       fragmentShader: cardArtFragment,
+      transparent: true,
       depthWrite: false,
       uniforms: u,
     })
     return { art, u }
   }, [song, seed])
+
+  // Miniature officielle : chargée directement depuis YouTube (CORS anonyme), jamais copiée.
+  // En cas d'échec, la carte garde simplement sa scène générative.
+  const video = song?.video
+  useEffect(() => {
+    if (!video) return
+    let alive = true
+    const texture = new TextureLoader().setCrossOrigin('anonymous').load(coverUrl(video), () => {
+      if (alive) u.uCover.value = texture
+    })
+    return () => {
+      alive = false
+      u.uCover.value = null
+      texture.dispose()
+    }
+  }, [video, u])
+  // Sans survol possible (tactile), la miniature suit la rangée active du classement.
+  const noHover = useMemo(() => window.matchMedia('(hover: none)').matches, [])
 
   const bars = useRef<InstancedMesh>(null)
   const { geometry, material } = useMemo(() => {
@@ -103,6 +132,7 @@ export default function CardArt({ track, slug, lite = false }: Props) {
   )
 
   const dummy = useMemo(() => new Object3D(), [])
+  const tileRadius = useRef(0)
   const heights = useRef(new Float32Array(BARS))
 
   useFrame((state, dt) => {
@@ -111,9 +141,23 @@ export default function CardArt({ track, slug, lite = false }: Props) {
     const t = state.clock.elapsedTime
     u.uTime.value = t
     u.uRes.value.set(el.clientWidth, el.clientHeight)
-    const hovered = useExperience.getState().hoveredSlug === slug
+    const tile = el.closest<HTMLElement>('.art-tile')
+    if (tile) {
+      const tr = el.getBoundingClientRect()
+      const br = tile.getBoundingClientRect()
+      // Rectangle de la tuile dans le repère de la vue (px, origine en bas à gauche).
+      u.uClip.value.set(br.left - tr.left, tr.bottom - br.bottom, br.right - tr.left, tr.bottom - br.top)
+      if (!tileRadius.current) tileRadius.current = parseFloat(getComputedStyle(tile).borderTopLeftRadius) || 20
+      u.uRadius.value = tileRadius.current
+    }
+    const { hoveredSlug, activeSlug } = useExperience.getState()
+    const hovered = hoveredSlug === slug
     const target = hovered && !lite ? 1 : 0
     u.uHover.value += (target - u.uHover.value) * (1 - Math.exp(-dt * 7))
+    // Fondu de la miniature : entrée ~0,8 s, sortie plus courte et plus discrète.
+    const showCover = u.uCover.value !== null && (hovered || (noHover && activeSlug === slug))
+    const coverRate = showCover ? 3.2 : 5.5
+    u.uCoverMix.value += ((showCover ? 1 : 0) - u.uCoverMix.value) * (1 - Math.exp(-dt * coverRate))
 
     const mesh = bars.current
     if (!mesh) return

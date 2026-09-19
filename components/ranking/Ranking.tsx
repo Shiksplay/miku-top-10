@@ -113,8 +113,8 @@ export function Ranking() {
           </h2>
           <p className="mt-6 max-w-[56ch] text-lead text-paper/85">
             Dix titres, du n°10 au n°1. Chacun a sa couleur : la page la prend quand vous passez dessus.
-            Survolez un titre pour voir son rythme. Pour l’écouter, les liens mènent vers les plateformes
-            officielles.
+            Survolez un titre pour voir son rythme et, quand elle existe, la miniature de sa vidéo
+            officielle. Pour l’écouter, les liens mènent vers les plateformes officielles.
           </p>
         </div>
       </header>

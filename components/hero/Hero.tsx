@@ -56,9 +56,10 @@ export function Hero() {
       </div>
 
       <div className="relative mt-[max(2rem,5vh)] grid items-end gap-8 md:grid-cols-[minmax(0,1fr)_auto]">
-        <p className="max-w-[40ch] text-lead text-paper/90">
+        <p className="max-w-[40ch] text-lead text-pretty text-paper/90">
           Le classement des dix chansons qui ont fait d’une voix de synthèse une star mondiale, de 2007
-          à aujourd’hui. Tous les visuels sont générés en direct, aucun n’est officiel.
+          à aujourd’hui. Les visuels sont générés en direct. Au survol, la plupart des cartes dévoilent
+          la miniature de la vidéo officielle.
         </p>
         <a
           href="#classement"
@@ -67,7 +68,7 @@ export function Hero() {
             scrollToTarget('#classement', -8)
             document.getElementById('classement')?.focus({ preventScroll: true })
           }}
-          className="inline-flex min-h-12 items-center justify-center gap-3 self-start rounded-full bg-pink px-6 text-body font-semibold text-void transition-[transform,background-color] duration-300 ease-[var(--ease-voice)] hover:scale-[1.03] hover:bg-paper md:self-end"
+          className="inline-flex min-h-12 items-center justify-center gap-3 self-start rounded-full bg-pink px-6 text-body font-semibold text-void transition-[scale,background-color] duration-300 ease-[var(--ease-voice)] hover:scale-[1.03] hover:bg-paper active:scale-[0.96] md:self-end"
         >
           Découvrir le classement
           <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">

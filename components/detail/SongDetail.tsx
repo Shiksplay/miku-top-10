@@ -196,10 +196,14 @@ export function SongDetail() {
                         href={l.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex min-h-11 items-center gap-2 rounded-full px-4 text-small ring-1 ring-inset ring-paper/25 transition-colors hover:bg-pink hover:text-void hover:ring-pink"
+                        className="inline-flex min-h-11 items-center gap-2 rounded-full pl-4 pr-3.5 text-small ring-1 ring-inset ring-paper/25 transition-[color,background-color,box-shadow,scale] hover:bg-pink hover:text-void hover:ring-pink active:scale-[0.96]"
                       >
                         {l.platform}
-                        <span className="visually-hidden"> : rechercher {song.title} (nouvel onglet)</span>
+                        <span className="visually-hidden">
+                          {l.kind === 'video'
+                            ? ` : vidéo officielle de ${song.title} (nouvel onglet)`
+                            : ` : rechercher ${song.title} (nouvel onglet)`}
+                        </span>
                         <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
                           <path d="M2 8 8 2M3 2h5v5" fill="none" stroke="currentColor" strokeWidth="1.4" />
                         </svg>
@@ -208,8 +212,10 @@ export function SongDetail() {
                   ))}
                 </ul>
                 <p className="mt-4 text-micro text-ash">
-                  Aucun fichier audio ni parole n’est hébergé ici. Les liens ouvrent une recherche sur la
-                  plateforme.
+                  Aucun fichier audio ni parole n’est hébergé ici.{' '}
+                  {song.video
+                    ? 'Le lien YouTube ouvre la vidéo officielle, les autres une recherche sur la plateforme.'
+                    : 'Les liens ouvrent une recherche sur la plateforme.'}
                 </p>
               </GlassSurface>
             </motion.div>

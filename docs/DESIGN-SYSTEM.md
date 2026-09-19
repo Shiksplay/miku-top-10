@@ -13,6 +13,8 @@ Miku est une **voix de synthèse**. Le langage visuel reprend celui de l'éditeu
 
 Un seul élément « fort » par écran : le blob à deux traînes dans le hero, la scène 3D dans le détail. Tout le reste reste discipliné.
 
+Le blob partage la matière du logo « 39 » : la même fonction de métal liquide. Sa silhouette tient en une tête et deux mèches effilées, continues (jamais des chapelets de billes), qui pendent comme des couettes au repos et filent derrière la tête en mouvement. Sa matière doit garder un fort contraste de luminance (zones sombres, teal saturé, reflets papier), pour que le titre en `difference` s'inverse en cramoisi ou en noir, jamais en gris moyen.
+
 ## Couleurs
 
 | Token | Hex | Rôle | Contraste sur `void` |
@@ -63,6 +65,7 @@ Règles :
 - Base Tailwind (4 px). Gouttière `--gutter` = clamp(1 rem → 3 rem), section `--space-section` = clamp(6 rem → 13 rem), header `--header-h` = 4,5 rem.
 - Rayons, hiérarchisés : `tile` 20 px (visuels), `card` 28 px (cartes de verre), panneau détail 32 px, `pill` pour la navigation, les boutons et le lecteur.
 - Cibles tactiles ≥ 44 px (`min-h-11`).
+- Retour à l'appui : `scale(0.96)` sur les boutons (CTA du hero, boutons des cartes), avec une transition sur la propriété `scale`. Tailwind v4 compile `scale-*` en `scale`, pas en `transform`.
 
 ## Mouvement
 
@@ -82,6 +85,22 @@ Un seul moment orchestré à l'entrée : le logo « 39 » se remplit de métal l
 | Allégé / réduit / sans WebGL | `data-glass="css"` : base sombre `rgba(11,15,14,.55)` + `backdrop-filter: blur(18px) saturate(155%)` + liseré intérieur |
 
 Paramètres (API de la lib d'origine) : `borderRadius`, `type` (`rounded` | `circle` | `pill`), `tintOpacity`, `warp` (boutons play), `edgeIntensity`, `rimIntensity`, `baseIntensity`, `edgeDistance`, `rimDistance`, `baseDistance`, `cornerBoost`, `rippleEffect`, `blurRadius`. Deux ajouts : `refraction` (amplitude en px) et `darken` (plancher de lisibilité).
+
+## Miniatures officielles
+
+Pour les morceaux dont la vidéo YouTube officielle est vérifiée (voir `data/songs.ts`).
+
+| Règle | Valeur |
+|---|---|
+| Visuel par défaut | La scène générative, jamais remplacée au repos |
+| Déclencheur | Survol ou focus de la rangée ; sans survol (tactile), rangée active |
+| Entrée | Fondu « liquide » : seuil qui avance sur le bruit fbm de la scène, liseré à la couleur `color1` du morceau, ~0,8 s |
+| Sortie | Même fondu, inversé et plus court (~0,5 s) |
+| Visualiseur | Base assombrie surtout en bas (×0,36 → ×0,95), pour que la miniature reste lisible |
+| Recadrage | « cover » centré dans la tuile 4:5, zone utile 16:9 (bandes noires d'une miniature 4:3 exclues) |
+| Contour | `ring-white/10`, puis `ring-white/30` au survol : blanc pur, jamais un blanc teinté |
+| Rayon | `tile` 20 px, appliqué aussi au WebGL par découpe dans le shader (parallax compris) |
+| Repli CSS | Même révélation en opacité (0,6 s à l'entrée, 0,3 s à la sortie), visible d'emblée sans survol |
 
 ## Focus et accessibilité
 

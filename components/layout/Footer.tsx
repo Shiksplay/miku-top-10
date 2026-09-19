@@ -19,7 +19,9 @@ export function Footer() {
           <p>
             Site de fan, non officiel et non commercial. Hatsune Miku est une création et une marque de
             Crypton Future Media, INC. Aucune illustration, aucun logo ni aucune pochette officielle n’est
-            utilisé : tous les visuels sont générés en direct par des shaders.
+            hébergé ici : les visuels sont générés en direct par des shaders. Seule exception : au survol,
+            les cartes affichent la miniature publique de la vidéo officielle, chargée directement depuis
+            YouTube.
           </p>
           <p>
             Aucun fichier audio ni aucune parole n’est hébergé. Pour écouter, les liens renvoient vers les

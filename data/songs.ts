@@ -2,16 +2,28 @@
  * Données du classement.
  *
  * Hypothèses documentées :
- * - Liens d'écoute : on pointe vers des pages de RECHERCHE des plateformes officielles
- *   (YouTube, Spotify, niconico) plutôt que vers des ID de vidéos, pour ne jamais
- *   publier de lien inventé, mort ou non officiel. Remplacez `listen[].href` par l'URL
- *   exacte de la mise en ligne officielle si vous la connaissez.
+ * - Liens d'écoute : Spotify et niconico pointent vers des pages de RECHERCHE, pour ne jamais
+ *   publier de lien inventé, mort ou non officiel. YouTube aussi, sauf quand la vidéo officielle
+ *   a été vérifiée (voir `video` ci-dessous) : le lien YouTube pointe alors vers cette vidéo exacte.
+ * - Vidéos officielles (vérifiées le 2026-09-19) : pour 8 morceaux sur 10, l'ID YouTube a été
+ *   contrôlé via l'oEmbed public de YouTube (titre exact + chaîne éditrice). Seules sont retenues
+ *   la chaîne du producteur ou la chaîne officielle Hatsune Miku de Crypton Future Media.
+ * - Miniatures : pour ces 8 morceaux, la carte révèle au survol la miniature publique de la vidéo
+ *   (i.ytimg.com), par un fondu « liquide » depuis la scène générative, qui reste le visuel par
+ *   défaut. L'image est chargée directement depuis YouTube, jamais copiée ni ré-hébergée (pas de
+ *   proxy next/image) : elle reste liée à sa source officielle. C'est une extension assumée de la
+ *   politique initiale « aucun visuel officiel » (voir THIRD_PARTY_NOTICES.md).
+ * - Points ouverts : « Melt » et « Ievan Polkka » n'ont pas de mise en ligne officielle identifiée
+ *   (ni chez le producteur, ni sur la chaîne officielle). Ils gardent le visuel génératif et des
+ *   liens de recherche, sans rien forcer.
+ * - Précisions : pour « World is Mine », la vidéo officielle est une captation live (chaîne
+ *   Crypton), pas le clip niconico d'origine. Pour « The Disappearance of Hatsune Miku », c'est le
+ *   MV officiel du 10e anniversaire (2018), publié par cosMo@暴走P.
  * - `tempo` est une valeur ARTISTIQUE qui cadence les animations. Ce n'est pas une
  *   donnée factuelle et elle n'est jamais affichée.
- * - « Mesmerizer » : le brief indiquait « Sat/3ano ». Le titre est crédité à サツキ
- *   (Satsuki), 2024, en duo avec Kasane Teto. À vérifier si vous aviez une autre source.
- * - Aucun visuel officiel n'est utilisé : chaque morceau est représenté par une scène
- *   générative abstraite (voir components/webgl/scenes).
+ * - « Mesmerizer » : le brief indiquait « Sat/3ano ». Le titre est de サツキ (Satsuki), 2024, en
+ *   duo avec Kasane Teto : confirmé par la mise en ligne officielle (chaîne サツキ, « メズマライザー /
+ *   初音ミク・重音テトSV »).
  */
 
 export type Genre = 'pop' | 'rock' | 'electro' | 'folk' | 'chiptune'
@@ -47,6 +59,19 @@ export type GradientSignature = {
 export type ListenLink = {
   platform: 'YouTube' | 'Spotify' | 'niconico'
   href: string
+  /** `video` : URL exacte de la vidéo officielle vérifiée. `search` : page de recherche. */
+  kind: 'video' | 'search'
+}
+
+/** Mise en ligne officielle vérifiée (oEmbed YouTube : titre et chaîne contrôlés). */
+export type OfficialVideo = {
+  id: string
+  /** Chaîne qui publie la vidéo. */
+  channel: string
+  /** Plus grande miniature publiée pour cette vidéo. */
+  thumb: 'maxresdefault' | 'hqdefault'
+  /** Miniature 4:3 avec bandes noires incrustées : la zone utile 16:9 est recadrée. */
+  letterbox?: boolean
 }
 
 export type Song = {
@@ -70,16 +95,37 @@ export type Song = {
   /** Texte alternatif du visuel génératif. */
   artAlt: string
   listen: ListenLink[]
+  /** Absente quand aucune mise en ligne officielle n'a pu être vérifiée (voir en tête). */
+  video?: OfficialVideo
 }
 
-const search = (q: string): ListenLink[] => {
+const listenLinks = (q: string, video?: OfficialVideo): ListenLink[] => {
   const e = encodeURIComponent(q)
   return [
-    { platform: 'YouTube', href: `https://www.youtube.com/results?search_query=${e}` },
-    { platform: 'Spotify', href: `https://open.spotify.com/search/${e}` },
-    { platform: 'niconico', href: `https://www.nicovideo.jp/search/${e}` },
+    video
+      ? { platform: 'YouTube', kind: 'video', href: `https://www.youtube.com/watch?v=${video.id}` }
+      : { platform: 'YouTube', kind: 'search', href: `https://www.youtube.com/results?search_query=${e}` },
+    { platform: 'Spotify', kind: 'search', href: `https://open.spotify.com/search/${e}` },
+    { platform: 'niconico', kind: 'search', href: `https://www.nicovideo.jp/search/${e}` },
   ]
 }
+
+/** Miniature publique de la vidéo, servie par YouTube (jamais ré-hébergée). */
+export const coverUrl = (video: OfficialVideo) => `https://i.ytimg.com/vi/${video.id}/${video.thumb}.jpg`
+
+const CRYPTON = 'Hatsune Miku (chaîne officielle, Crypton Future Media)'
+
+/** Vidéos vérifiées le 2026-09-19 (oEmbed : titre exact + chaîne). */
+const videos = {
+  worldIsMine: { id: 'jhl5afLEKdo', channel: CRYPTON, thumb: 'maxresdefault' },
+  senbonzakura: { id: 'shs0rAiwsGQ', channel: 'WhiteFlame official (Kurousa-P)', thumb: 'maxresdefault' },
+  rollingGirl: { id: 'vnw8zURAxkU', channel: 'ヒトリエ / wowaka', thumb: 'hqdefault', letterbox: true },
+  disappearance: { id: 'VWVtIg5cdDU', channel: 'cosMo@暴走P', thumb: 'maxresdefault' },
+  tellYourWorld: { id: 'PqJNc9KVIZE', channel: 'kz-livetune', thumb: 'maxresdefault' },
+  ghostRule: { id: 'KushW6zvazM', channel: 'DECO*27', thumb: 'maxresdefault' },
+  mesmerizer: { id: '19y8YTbvri8', channel: 'サツキ', thumb: 'maxresdefault' },
+  miku: { id: 'NocXEwsJGOQ', channel: CRYPTON, thumb: 'maxresdefault' },
+} satisfies Record<string, OfficialVideo>
 
 const base = { uDensity: 1.3, cAzimuthAngle: 180 } as const
 
@@ -116,7 +162,8 @@ export const songs: Song[] = [
     tempo: 1.35,
     artAlt:
       'Cristal abstrait à facettes roses et turquoise, en lente rotation au centre d’une couronne d’éclats.',
-    listen: search('World is Mine ryo supercell 初音ミク'),
+    video: videos.worldIsMine,
+    listen: listenLinks('World is Mine ryo supercell 初音ミク', videos.worldIsMine),
   },
   {
     rank: 2,
@@ -148,7 +195,7 @@ export const songs: Song[] = [
     scene: 'melt',
     tempo: 0.9,
     artAlt: 'Sphère liquide rose qui fond lentement vers le bas, ses gouttes s’étirant sur un fond turquoise sombre.',
-    listen: search('Melt ryo supercell メルト 初音ミク'),
+    listen: listenLinks('Melt ryo supercell メルト 初音ミク'),
   },
   {
     rank: 3,
@@ -180,7 +227,8 @@ export const songs: Song[] = [
     scene: 'petals',
     tempo: 1.55,
     artAlt: 'Tourbillon de centaines de pétales abstraits rose pâle qui s’enroulent autour d’un axe invisible.',
-    listen: search('千本桜 黒うさP 初音ミク Senbonzakura'),
+    video: videos.senbonzakura,
+    listen: listenLinks('千本桜 黒うさP 初音ミク Senbonzakura', videos.senbonzakura),
   },
   {
     rank: 4,
@@ -212,7 +260,8 @@ export const songs: Song[] = [
     scene: 'rolling',
     tempo: 1.9,
     artAlt: 'Anneaux cyan qui roulent à toute vitesse en laissant des traînées lumineuses.',
-    listen: search('ローリンガール wowaka 初音ミク Rolling Girl'),
+    video: videos.rollingGirl,
+    listen: listenLinks('ローリンガール wowaka 初音ミク Rolling Girl', videos.rollingGirl),
   },
   {
     rank: 5,
@@ -243,7 +292,7 @@ export const songs: Song[] = [
     scene: 'baton',
     tempo: 1.6,
     artAlt: 'Bâton cylindrique vert et blanc qui tournoie, entouré de pois lumineux qui rebondissent en rythme.',
-    listen: search('Ievan Polkka 初音ミク Otomania'),
+    listen: listenLinks('Ievan Polkka 初音ミク Otomania'),
   },
   {
     rank: 6,
@@ -275,7 +324,8 @@ export const songs: Song[] = [
     scene: 'dissolve',
     tempo: 2.4,
     artAlt: 'Sphère de particules cyan qui se désagrège en poussière numérique.',
-    listen: search('初音ミクの消失 cosMo 暴走P'),
+    video: videos.disappearance,
+    listen: listenLinks('初音ミクの消失 cosMo 暴走P', videos.disappearance),
   },
   {
     rank: 7,
@@ -306,7 +356,8 @@ export const songs: Song[] = [
     scene: 'network',
     tempo: 1.2,
     artAlt: 'Réseau de points lumineux reliés par des arcs, formant un globe qui s’illumine de proche en proche.',
-    listen: search('Tell Your World livetune 初音ミク'),
+    video: videos.tellYourWorld,
+    listen: listenLinks('Tell Your World livetune 初音ミク', videos.tellYourWorld),
   },
   {
     rank: 8,
@@ -338,7 +389,8 @@ export const songs: Song[] = [
     scene: 'ghost',
     tempo: 1.75,
     artAlt: 'Silhouettes translucides rouge et turquoise qui ondulent et se dédoublent comme un signal parasité.',
-    listen: search('ゴーストルール DECO*27 初音ミク Ghost Rule'),
+    video: videos.ghostRule,
+    listen: listenLinks('ゴーストルール DECO*27 初音ミク Ghost Rule', videos.ghostRule),
   },
   {
     rank: 9,
@@ -370,7 +422,8 @@ export const songs: Song[] = [
     scene: 'spiral',
     tempo: 1.45,
     artAlt: 'Spirale hypnotique violette et turquoise qui tourne sur elle-même, anneaux concentriques pulsants.',
-    listen: search('メズマライザー サツキ 初音ミク 重音テト Mesmerizer'),
+    video: videos.mesmerizer,
+    listen: listenLinks('メズマライザー サツキ 初音ミク 重音テト Mesmerizer', videos.mesmerizer),
   },
   {
     rank: 10,
@@ -401,7 +454,8 @@ export const songs: Song[] = [
     scene: 'voxels',
     tempo: 1.5,
     artAlt: 'Grille de petits cubes turquoise et roses qui sautent en rythme comme un égaliseur 8-bit.',
-    listen: search('Anamanaguchi Miku Hatsune Miku'),
+    video: videos.miku,
+    listen: listenLinks('Anamanaguchi Miku Hatsune Miku', videos.miku),
   },
 ]
 

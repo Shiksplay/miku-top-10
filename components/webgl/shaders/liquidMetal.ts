@@ -15,7 +15,9 @@ import { hash, simplex3 } from './noise'
  *     et par le logo du header (ShaderMaterial R3F) ;
  *   - « rethématisation » : la luminance du motif d'origine est projetée sur une rampe
  *     void → teal profond → teal → papier, avec un reflet rose sur les arêtes ;
- *   - uReveal : balayage d'apparition (loader) ; uPointer : décale le reflet principal.
+ *   - uReveal : balayage d'apparition (loader) ; uPointer : décale le reflet principal ;
+ *   - deux points d'extension optionnels (defines), sans effet sur le loader ni le logo :
+ *     LM_FRAME (repère local uFrame, pour un objet mobile) et LM_GRAIN (intensité du grain).
  */
 export const liquidMetalChunk = /* glsl */ `
 uniform float uTime;
@@ -41,6 +43,9 @@ uniform vec3 uPink;
 uniform float uThemeMix;
 uniform float uReveal;
 uniform vec2 uPointer;
+#ifdef LM_FRAME
+uniform vec3 uFrame;
+#endif
 
 ${simplex3}
 ${hash}
@@ -74,6 +79,11 @@ vec4 liquidMetal(vec2 uv, vec2 res) {
 
   vec2 FC = uv * res;
   vec2 p = (FC * 2.0 - res) / res.y;
+#ifdef LM_FRAME
+  // Repère local (blob du hero) : motif centré sur uFrame.xy (px), unité uFrame.z (px).
+  // Le métal suit l'objet au lieu d'être calé sur toute la zone de rendu.
+  p = (FC - uFrame.xy) / uFrame.z;
+#endif
   vec2 l = vec2(0.0);
   float dotP = dot(p, p);
   l.x += abs(uDotFactor - dotP) * uDotMultiplier;
@@ -103,7 +113,11 @@ vec4 liquidMetal(vec2 uv, vec2 res) {
   vec4 exp2x = exp(2.0 * clamp(ratio, -8.0, 8.0));
   o = (exp2x - 1.0) / (exp2x + 1.0);
 
-  float grain = hash21(FC / 1.5 + time * 0.0004) * 0.12 - 0.075;
+#ifndef LM_GRAIN
+#define LM_GRAIN 0.12
+#endif
+  // Grain d'origine (0.12) : juste pour un logo de quelques dizaines de px, trop sale sur une grande surface.
+  float grain = hash21(FC / 1.5 + time * 0.0004) * LM_GRAIN - LM_GRAIN * 0.625;
   o += vec4(grain);
 
   // Reflet métallique d'origine (liquidMetalEffect)

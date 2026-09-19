@@ -2,8 +2,12 @@ import { hash, simplex3 } from './noise'
 
 /**
  * Art génératif des cartes : un flux de couleur (fbm à domaine déformé) dans la
- * signature du morceau, plus un motif abstrait qui évoque le titre. Aucune
- * iconographie officielle, uniquement des formes géométriques.
+ * signature du morceau, plus un motif abstrait qui évoque le titre. La scène elle-même
+ * n'emploie aucune iconographie officielle, uniquement des formes géométriques.
+ *
+ * Miniature officielle (morceaux dont la vidéo a été vérifiée, voir data/songs.ts) : au survol,
+ * elle remplace la scène par un fondu « liquide », un seuil qui avance sur le même bruit fbm,
+ * avec un liseré à la couleur du morceau. La scène reste le visuel par défaut.
  */
 export const cardArtFragment = /* glsl */ `
 precision highp float;
@@ -17,6 +21,12 @@ uniform float uSeed;
 uniform vec3 uC1;
 uniform vec3 uC2;
 uniform vec3 uC3;
+uniform sampler2D uCover;
+uniform float uCoverMix;
+uniform vec4 uCoverRect;
+uniform float uCoverAspect;
+uniform vec4 uClip;
+uniform float uRadius;
 ${simplex3}
 ${hash}
 
@@ -127,8 +137,33 @@ void main() {
 
   float vig = smoothstep(1.15, 0.2, length((uv - 0.5) * vec2(1.1, 1.0)));
   col *= 0.55 + 0.45 * vig;
+
+  if (uCoverMix > 0.001) {
+    // Recadrage « cover » dans la zone utile de la miniature (hors bandes noires éventuelles),
+    // avec un léger remous qui se pose quand la miniature est entièrement révélée.
+    vec2 fit = aspect < uCoverAspect ? vec2(aspect / uCoverAspect, 1.0) : vec2(1.0, uCoverAspect / aspect);
+    vec2 cuv = 0.5 + (uv - 0.5) * fit + q * 0.02 * (1.0 - uCoverMix);
+    cuv = mix(uCoverRect.xy, uCoverRect.zw, clamp(cuv, 0.0, 1.0));
+    vec3 cover = texture2D(uCover, cuv).rgb * (0.82 + 0.18 * vig);
+    float front = mix(-0.25, 1.25, uCoverMix);
+    float reveal = smoothstep(front - 0.1, front + 0.1, 0.5 + 0.5 * n);
+    reveal = 1.0 - reveal;
+    col = mix(col, cover, reveal);
+    col += glow * reveal * (1.0 - reveal) * 2.4;
+  }
+
   col += (hash21(uv * uRes + fract(uTime)) - 0.5) * 0.035;
-  col *= mix(1.0, 0.42, uHover);
-  gl_FragColor = vec4(col, 1.0);
+  // Au survol, la base s'assombrit pour le visualiseur ; avec une miniature, surtout en bas.
+  float dim = mix(0.42, mix(0.36, 0.95, smoothstep(0.08, 0.75, uv.y)), uCoverMix);
+  col *= mix(1.0, dim, uHover);
+
+  // Découpe au rectangle arrondi réel de la tuile : la vue R3F est un rectangle (scissor),
+  // décalé par le parallax ; sans cela ses coins carrés dépassent de l'arrondi CSS.
+  vec2 px = vUv * uRes;
+  vec2 q2 = abs(px - (uClip.xy + uClip.zw) * 0.5) - (uClip.zw - uClip.xy) * 0.5 + uRadius;
+  float dClip = length(max(q2, 0.0)) + min(max(q2.x, q2.y), 0.0) - uRadius;
+  float alpha = clamp(0.5 - dClip, 0.0, 1.0);
+  if (alpha <= 0.0) discard;
+  gl_FragColor = vec4(col, alpha);
 }
 `

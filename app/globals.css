@@ -327,6 +327,33 @@ html[data-mode='full'] .hero-title {
     transform: none;
   }
 }
+/* Miniature officielle du visuel de repli : entrée au survol ou au focus, sortie plus courte.
+   Sans survol possible (tactile), elle est visible d'emblée. */
+.art-cover {
+  opacity: 0;
+  scale: calc(var(--cover-zoom, 1) * 1.04);
+  transition:
+    opacity 0.3s var(--ease-voice),
+    scale 0.4s var(--ease-voice);
+}
+.rank-row:hover .art-cover,
+.rank-row:focus-within .art-cover {
+  opacity: 1;
+  scale: var(--cover-zoom, 1);
+  transition:
+    opacity 0.6s var(--ease-voice),
+    scale 0.9s var(--ease-voice);
+}
+@media (hover: none) {
+  .art-cover {
+    opacity: 1;
+    scale: var(--cover-zoom, 1);
+  }
+}
+html[data-motion='reduced'] .art-cover {
+  scale: var(--cover-zoom, 1);
+  transition: opacity 0.3s linear;
+}
 html[data-motion='reduced'] .rank-numeral {
   --rank-wdth: 100;
   --rank-wght: 760;
