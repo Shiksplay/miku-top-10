@@ -58,8 +58,8 @@ export function Hero() {
       <div className="relative mt-[max(2rem,5vh)] grid items-end gap-8 md:grid-cols-[minmax(0,1fr)_auto]">
         <p className="max-w-[40ch] text-lead text-pretty text-paper/90">
           Le classement des dix chansons qui ont fait d’une voix de synthèse une star mondiale, de 2007
-          à aujourd’hui. Les visuels sont générés en direct. Au survol, la plupart des cartes dévoilent
-          la miniature de la vidéo officielle.
+          à aujourd’hui. Les visuels sont générés en direct. Au survol, chaque carte dévoile la
+          miniature de la vidéo officielle.
         </p>
         <a
           href="#classement"

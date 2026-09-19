@@ -1,6 +1,6 @@
 # Miku, en dix morceaux
 
-Site vitrine expérimental (fan-made, non officiel) : le **Top 10 des chansons de Hatsune Miku**, du n°10 au n°1. Visuels génératifs (shaders, particules), verre liquide, typographie cinétique « vibrato ». Au survol, les cartes dévoilent la miniature de la vidéo officielle quand elle a été vérifiée.
+Site vitrine expérimental (fan-made, non officiel) : le **Top 10 des chansons de Hatsune Miku**, du n°10 au n°1. Visuels génératifs (shaders, particules), verre liquide, typographie cinétique « vibrato ». Au survol, chaque carte dévoile la miniature de la vidéo officielle, vérifiée.
 
 **En ligne : https://miku-top-10.vercel.app**. Chaque push sur `main` redéploie automatiquement en production (Vercel, intégration GitHub).
 
@@ -171,15 +171,15 @@ Le hero gagne en fluidité parce que, hors du blob, un pixel ne lit plus qu'un t
 ## Contraintes légales et éditoriales
 
 - Aucune illustration, aucun logo, aucune pochette officielle **hébergés**. Les visuels du site sont génératifs et abstraits.
-- Seule exception, pour 8 morceaux sur 10 : au survol, la carte affiche la **miniature publique** de la vidéo officielle vérifiée. Elle est chargée directement depuis `i.ytimg.com`, jamais copiée ni proxifiée : `<img>` natif, pas `next/image`.
-- Aucun fichier audio ni aucune parole hébergés. Le lien YouTube ouvre la **vidéo officielle** quand elle est vérifiée, sinon une recherche ; Spotify et niconico ouvrent toujours une **recherche**.
+- Seule exception : au survol, chaque carte affiche la **miniature publique** de la vidéo officielle vérifiée. Elle est chargée directement depuis `i.ytimg.com`, jamais copiée ni proxifiée : `<img>` natif, pas `next/image`.
+- Aucun fichier audio ni aucune parole hébergés. Le lien YouTube ouvre la **vidéo officielle** vérifiée ; Spotify et niconico ouvrent une **recherche**.
 - Mentions dans le footer, licences dans `THIRD_PARTY_NOTICES.md`.
 
 ## Hypothèses documentées
 
 1. **liquid-glass-js** : porté depuis le dépôt dashersw (MIT), le paquet npm homonyme étant d'un autre auteur.
 2. **html2canvas-pro** au lieu de html2canvas 1.4.1 : Tailwind v4 génère des couleurs `oklab()` / `color-mix()` que html2canvas 1.4.1 ne sait pas analyser. Le fork a une API identique.
-3. **Liens d'écoute et miniatures** : un ID YouTube n'est utilisé qu'après vérification via l'oEmbed public de YouTube (titre exact et chaîne éditrice : producteur, ou chaîne officielle Hatsune Miku de Crypton). C'est le cas de 8 morceaux ; voir `videos` dans `data/songs.ts`. **Melt** et **Ievan Polkka** n'ont pas de mise en ligne officielle identifiée : visuel génératif et recherche, en point ouvert. World is Mine renvoie vers une captation live officielle, The Disappearance vers le MV du 10e anniversaire (2018).
+3. **Liens d'écoute et miniatures** : un ID YouTube n'est utilisé qu'après vérification via l'oEmbed public de YouTube (titre exact et chaîne éditrice : producteur, ou chaîne officielle Hatsune Miku de Crypton). C'est le cas des 10 morceaux ; voir `videos` dans `data/songs.ts`. Versions retenues faute de mieux : World is Mine renvoie vers une captation live officielle, The Disappearance vers le MV du 10e anniversaire (2018), **Melt** vers le remix officiel de ryo (2026, l'original de 2007 n'étant pas officiellement sur YouTube), **Ievan Polkka** vers la piste audio fournie par Crypton.
 4. **Mesmerizer** : le brief indiquait « Sat/3ano ». Le titre est de **サツキ (Satsuki), 2024**, en duo avec Kasane Teto. C'est confirmé par la mise en ligne officielle sur la chaîne サツキ.
 5. **cosMo@BurstP** : affiché sous sa forme d'origine, **cosMo@暴走P** (Bousou-P).
 6. **Tempo** des animations : valeur artistique, jamais affichée (les BPM exacts ne sont pas publiés ici).

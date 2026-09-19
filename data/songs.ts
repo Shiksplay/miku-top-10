@@ -5,20 +5,25 @@
  * - Liens d'écoute : Spotify et niconico pointent vers des pages de RECHERCHE, pour ne jamais
  *   publier de lien inventé, mort ou non officiel. YouTube aussi, sauf quand la vidéo officielle
  *   a été vérifiée (voir `video` ci-dessous) : le lien YouTube pointe alors vers cette vidéo exacte.
- * - Vidéos officielles (vérifiées le 2026-09-19) : pour 8 morceaux sur 10, l'ID YouTube a été
+ * - Vidéos officielles (vérifiées le 2026-09-19) : pour les 10 morceaux, l'ID YouTube a été
  *   contrôlé via l'oEmbed public de YouTube (titre exact + chaîne éditrice). Seules sont retenues
- *   la chaîne du producteur ou la chaîne officielle Hatsune Miku de Crypton Future Media.
- * - Miniatures : pour ces 8 morceaux, la carte révèle au survol la miniature publique de la vidéo
+ *   la chaîne du producteur, la chaîne officielle Hatsune Miku de Crypton Future Media, ou une
+ *   piste fournie à YouTube par Crypton elle-même.
+ * - Miniatures : pour chaque morceau, la carte révèle au survol la miniature publique de la vidéo
  *   (i.ytimg.com), par un fondu « liquide » depuis la scène générative, qui reste le visuel par
  *   défaut. L'image est chargée directement depuis YouTube, jamais copiée ni ré-hébergée (pas de
  *   proxy next/image) : elle reste liée à sa source officielle. C'est une extension assumée de la
  *   politique initiale « aucun visuel officiel » (voir THIRD_PARTY_NOTICES.md).
- * - Points ouverts : « Melt » et « Ievan Polkka » n'ont pas de mise en ligne officielle identifiée
- *   (ni chez le producteur, ni sur la chaîne officielle). Ils gardent le visuel génératif et des
- *   liens de recherche, sans rien forcer.
  * - Précisions : pour « World is Mine », la vidéo officielle est une captation live (chaîne
  *   Crypton), pas le clip niconico d'origine. Pour « The Disappearance of Hatsune Miku », c'est le
  *   MV officiel du 10e anniversaire (2018), publié par cosMo@暴走P.
+ * - « Melt » : l'enregistrement original de 2007 n'a aucune mise en ligne officielle sur YouTube
+ *   (seulement des ré-uploads non autorisés et des captations de fans). Choix éditorial : le remix
+ *   officiel « Melt CPK! Remix (Hatsune Miku ver.) », publié en 2026 par ryo (supercell) sur sa
+ *   chaîne, chanté par Miku. Le texte de la carte continue de décrire l'original.
+ * - « Ievan Polkka » : Otomania n'a pas de chaîne. On retient la piste audio officielle fournie à
+ *   YouTube par Crypton Future Media (℗ 2019 Otomania / CFM) ; sa miniature est la pochette. Un
+ *   « Remastered 2024 » passé par un distributeur tiers, à la pochette douteuse, a été écarté.
  * - `tempo` est une valeur ARTISTIQUE qui cadence les animations. Ce n'est pas une
  *   donnée factuelle et elle n'est jamais affichée.
  * - « Mesmerizer » : le brief indiquait « Sat/3ano ». Le titre est de サツキ (Satsuki), 2024, en
@@ -125,6 +130,12 @@ const videos = {
   ghostRule: { id: 'KushW6zvazM', channel: 'DECO*27', thumb: 'maxresdefault' },
   mesmerizer: { id: '19y8YTbvri8', channel: 'サツキ', thumb: 'maxresdefault' },
   miku: { id: 'NocXEwsJGOQ', channel: CRYPTON, thumb: 'maxresdefault' },
+  melt: { id: 'XRymkHlMB-k', channel: 'ryo (supercell)', thumb: 'maxresdefault' },
+  ievanPolkka: {
+    id: 'z5Ub37hEQFo',
+    channel: 'Release - Topic (piste fournie à YouTube par Crypton Future Media)',
+    thumb: 'maxresdefault',
+  },
 } satisfies Record<string, OfficialVideo>
 
 const base = { uDensity: 1.3, cAzimuthAngle: 180 } as const
@@ -195,7 +206,8 @@ export const songs: Song[] = [
     scene: 'melt',
     tempo: 0.9,
     artAlt: 'Sphère liquide rose qui fond lentement vers le bas, ses gouttes s’étirant sur un fond turquoise sombre.',
-    listen: listenLinks('Melt ryo supercell メルト 初音ミク'),
+    video: videos.melt,
+    listen: listenLinks('Melt ryo supercell メルト 初音ミク', videos.melt),
   },
   {
     rank: 3,
@@ -292,7 +304,8 @@ export const songs: Song[] = [
     scene: 'baton',
     tempo: 1.6,
     artAlt: 'Bâton cylindrique vert et blanc qui tournoie, entouré de pois lumineux qui rebondissent en rythme.',
-    listen: listenLinks('Ievan Polkka 初音ミク Otomania'),
+    video: videos.ievanPolkka,
+    listen: listenLinks('Ievan Polkka 初音ミク Otomania', videos.ievanPolkka),
   },
   {
     rank: 6,

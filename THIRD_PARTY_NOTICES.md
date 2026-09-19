@@ -86,24 +86,24 @@ Hatsune Miku est une création et une marque de Crypton Future Media, INC. Ce si
 
 ### Miniatures des vidéos officielles
 
-Pour 8 des 10 morceaux, la carte du classement affiche au survol (ou, sur écran tactile, quand la rangée est active) la **miniature publique de la vidéo officielle** sur YouTube.
+Pour chacun des 10 morceaux, la carte du classement affiche au survol (ou, sur écran tactile, quand la rangée est active) la **miniature publique de la vidéo officielle** sur YouTube.
 
 - **Source** : l'image est chargée par le navigateur du visiteur directement depuis les serveurs de YouTube (`https://i.ytimg.com/vi/<ID>/maxresdefault.jpg`, ou `hqdefault.jpg` quand c'est la seule taille publiée). Elle n'est jamais copiée, stockée, ré-hébergée ni transformée côté serveur : pas de proxy d'images `next/image`.
 - **Affichage** : dans le navigateur seulement. Recadrage centré (et suppression des bandes noires d'une miniature 4:3), fondu depuis la scène générative, visualiseur et grain léger par-dessus.
 - **Droits** : chaque miniature reste la propriété de ses ayants droit (producteurs, illustrateurs, Crypton Future Media). Aucune n'est présentée comme un visuel du site.
-- **Vérification** : seules sont utilisées des vidéos dont l'ID, le titre et la chaîne éditrice ont été contrôlés via l'oEmbed public de YouTube (vérification du 2026-09-19). Le lien « Écouter sur YouTube » de ces morceaux pointe vers cette vidéo exacte. Spotify et niconico restent des recherches.
+- **Vérification** : seules sont utilisées des vidéos dont l'ID, le titre et la chaîne éditrice ont été contrôlés via l'oEmbed public de YouTube (vérification du 2026-09-19) : chaîne du producteur, chaîne officielle Hatsune Miku, ou piste fournie à YouTube par Crypton. Le lien « Écouter sur YouTube » de ces morceaux pointe vers cette vidéo exacte. Spotify et niconico restent des recherches.
 
 | Morceau | Vidéo YouTube | Chaîne éditrice |
 |---|---|---|
 | World is Mine | `jhl5afLEKdo` (captation live officielle) | Hatsune Miku, chaîne officielle de Crypton Future Media |
+| Melt | `XRymkHlMB-k` (« Melt CPK! Remix (Hatsune Miku ver.) », remix officiel 2026 ; l'original de 2007 n'est pas officiellement sur YouTube) | ryo (supercell) |
 | Senbonzakura | `shs0rAiwsGQ` | WhiteFlame official (Kurousa-P) |
 | Rolling Girl | `vnw8zURAxkU` | ヒトリエ / wowaka |
+| Ievan Polkka | `z5Ub37hEQFo` (piste audio, miniature = pochette) | Release - Topic, fournie à YouTube par Crypton Future Media (℗ 2019 Otomania / CFM) |
 | The Disappearance of Hatsune Miku | `VWVtIg5cdDU` (MV du 10e anniversaire, 2018) | cosMo@暴走P |
 | Tell Your World | `PqJNc9KVIZE` | kz-livetune |
 | Ghost Rule | `KushW6zvazM` | DECO*27 |
 | Mesmerizer | `19y8YTbvri8` | サツキ |
 | Miku | `NocXEwsJGOQ` (lyric video) | Hatsune Miku, chaîne officielle de Crypton Future Media |
-
-**Melt** et **Ievan Polkka** : aucune mise en ligne officielle identifiée. Ces deux cartes gardent leur visuel génératif, et leurs liens restent des recherches.
 
 Cette section va au-delà de la politique initiale « aucun visuel officiel ». Pour y revenir, il suffit de retirer le champ `video` des morceaux dans `data/songs.ts` : les cartes et les liens reviennent alors d'eux-mêmes au génératif et aux recherches.
